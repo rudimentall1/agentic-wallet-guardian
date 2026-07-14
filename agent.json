@@ -1,0 +1,43 @@
+{
+  "name": "Agentic Wallet Guardian",
+  "type": "ASP",
+  "version": "1.0.0",
+  "description": "AI agent providing blockchain wallet trust scoring and Web3 security analysis.",
+
+  "provider": {
+    "name": "Independent Web3 AI Service Provider"
+  },
+
+  "skills": [
+    {
+      "name": "wallet_risk_analysis",
+      "endpoint": "/analyze",
+      "method": "POST",
+      "description": "Analyze wallet behavior and return trust score, risk level and explanation."
+    },
+    {
+      "name": "wallet_health_check",
+      "endpoint": "/health",
+      "method": "GET",
+      "description": "Check agent availability."
+    },
+    {
+      "name": "agent_capabilities",
+      "endpoint": "/capabilities",
+      "method": "GET",
+      "description": "Return available agent skills."
+    }
+  ],
+
+  "protocols": [
+    "REST",
+    "MCP",
+    "x402"
+  ],
+
+  "category": [
+    "Web3 Security",
+    "Blockchain Analytics",
+    "Wallet Intelligence"
+  ]
+}

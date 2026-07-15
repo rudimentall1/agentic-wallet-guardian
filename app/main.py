@@ -6,7 +6,7 @@ from app.agent import analyze_wallet
 
 app = FastAPI(
     title="Agentic Wallet Guardian",
-    description="AI agent for crypto wallet trust and risk analysis",
+    description="AI security decision agent that helps autonomous agents evaluate Web3 wallet and transaction risks.",
     version="1.0.0"
 )
 
@@ -20,7 +20,8 @@ def home():
     return {
         "agent": "Agentic Wallet Guardian",
         "status": "online",
-        "version": "1.0.0"
+        "version": "1.0.0",
+        "type": "ASP"
     }
 
 
@@ -38,11 +39,11 @@ def capabilities():
         "agent": "Agentic Wallet Guardian",
         "type": "ASP",
         "capabilities": [
-            "wallet risk analysis",
-            "trust score calculation",
-            "transaction behavior analysis",
-            "risk explanation",
-            "wallet profiling"
+            "wallet security analysis",
+            "transaction risk evaluation",
+            "token and contract risk analysis",
+            "approval security analysis",
+            "explainable AI security decisions"
         ]
     }
 
@@ -59,7 +60,8 @@ def agent_request(request: WalletRequest):
     result = analyze_wallet(request.address)
 
     return {
-        "service": "wallet_risk_analysis",
+        "service": "web3_security_decision",
         "agent": "Agentic Wallet Guardian",
+        "description": "AI security layer for Web3 interactions",
         "result": result
     }

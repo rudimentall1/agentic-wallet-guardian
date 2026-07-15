@@ -51,3 +51,15 @@ def capabilities():
 def analyze(request: WalletRequest):
 
     return analyze_wallet(request.address)
+
+
+@app.post("/agent")
+def agent_request(request: WalletRequest):
+
+    result = analyze_wallet(request.address)
+
+    return {
+        "service": "wallet_risk_analysis",
+        "agent": "Agentic Wallet Guardian",
+        "result": result
+    }

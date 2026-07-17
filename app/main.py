@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 
 from app.agent import analyze_wallet
-
+from app.decision_api import DecisionRequest, evaluate_action
 
 app = FastAPI(
     title="Agentic Wallet Guardian",
@@ -65,3 +65,8 @@ def agent_request(request: WalletRequest):
         "description": "AI security layer for Web3 interactions",
         "result": result
     }
+
+@app.post("/decision")
+def decision(request: DecisionRequest):
+
+    return evaluate_action(request)

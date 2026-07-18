@@ -6,6 +6,8 @@ from app.decision_api import DecisionRequest, evaluate_action
 
 from app.core.demo_engine import create_simulation
 
+from app.demo_ui import demo_ui_page
+
 from app.core.threat_simulation import (
     malicious_agent_attack,
     suspicious_agent_attack,
@@ -368,3 +370,11 @@ def demo():
             results
 
     }
+
+
+
+@app.get("/demo-ui")
+def demo_ui():
+
+    return demo_ui_page()
+

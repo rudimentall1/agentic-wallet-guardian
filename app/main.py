@@ -3,13 +3,19 @@ from pydantic import BaseModel
 
 from app.agent import analyze_wallet
 from app.decision_api import DecisionRequest, evaluate_action
+
 from app.core.demo_engine import create_simulation
+
 from app.core.threat_simulation import (
     malicious_agent_attack,
     suspicious_agent_attack,
     safe_agent_action
 )
-from app.core.demo_scenarios import seed_malicious_agent
+
+from app.core.demo_scenarios import (
+    seed_malicious_agent,
+    seed_suspicious_agent
+)
 
 
 app = FastAPI(
@@ -20,10 +26,13 @@ app = FastAPI(
 
 
 class WalletRequest(BaseModel):
+
     address: str
 
 
+
 class SimulationRequest(BaseModel):
+
     scenario: str
 
 
@@ -54,9 +63,13 @@ def health():
 def capabilities():
 
     return {
+
         "agent": "Agentic Wallet Guardian",
+
         "type": "ASP",
+
         "capabilities": [
+
             "wallet security analysis",
             "transaction risk evaluation",
             "token and contract risk analysis",
@@ -64,7 +77,9 @@ def capabilities():
             "explainable AI security decisions",
             "AI agent reputation analysis",
             "autonomous agent threat simulation"
+
         ]
+
     }
 
 
@@ -86,10 +101,19 @@ def agent_request(request: WalletRequest):
     )
 
     return {
-        "service": "web3_security_decision",
-        "agent": "Agentic Wallet Guardian",
-        "description": "AI security layer for Web3 interactions",
-        "result": result
+
+        "service":
+            "web3_security_decision",
+
+        "agent":
+            "Agentic Wallet Guardian",
+
+        "description":
+            "AI security layer for Web3 interactions",
+
+        "result":
+            result
+
     }
 
 
@@ -108,9 +132,14 @@ def simulate(request: SimulationRequest):
 
     scenarios = {
 
-        "malicious_agent": malicious_agent_attack,
-        "suspicious_agent": suspicious_agent_attack,
-        "safe_agent": safe_agent_action
+        "malicious_agent":
+            malicious_agent_attack,
+
+        "suspicious_agent":
+            suspicious_agent_attack,
+
+        "safe_agent":
+            safe_agent_action
 
     }
 
@@ -123,18 +152,25 @@ def simulate(request: SimulationRequest):
     if not scenario:
 
         return {
-            "error": "unknown scenario",
-            "available_scenarios": [
+
+            "error":
+                "unknown scenario",
+
+            "available_scenarios":
+            [
                 "safe_agent",
                 "suspicious_agent",
                 "malicious_agent"
             ]
+
         }
+
 
 
     if request.scenario == "malicious_agent":
 
         seed_malicious_agent()
+
 
 
     attack_request = scenario()
@@ -159,19 +195,189 @@ def simulate(request: SimulationRequest):
     if request.scenario == "malicious_agent":
 
         response["attack_detected"] = True
-        response["threat_type"] = "AI agent transaction abuse"
+
+        response["threat_type"] = (
+            "AI agent transaction abuse"
+        )
 
 
     elif request.scenario == "suspicious_agent":
 
         response["attack_detected"] = True
-        response["threat_type"] = "Suspicious AI agent behavior"
+
+        response["threat_type"] = (
+            "Suspicious AI agent behavior"
+        )
 
 
     else:
 
         response["attack_detected"] = False
-        response["threat_type"] = "No threat detected"
+
+        response["threat_type"] = (
+            "No threat detected"
+        )
 
 
     return response
+
+
+
+
+
+# ==================================================
+# ChainHack Demo Showcase
+# ==================================================
+
+
+@app.get("/demo")
+def demo():
+
+
+    scenarios = [
+
+        {
+            "name": "SAFE AGENT",
+            "scenario": "safe_agent"
+        },
+
+        {
+            "name": "UNKNOWN AGENT",
+            "scenario": "suspicious_agent"
+        },
+
+        {
+            "name": "MALICIOUS AGENT",
+            "scenario": "malicious_agent"
+        }
+
+    ]
+
+
+
+    handlers = {
+
+        "safe_agent":
+            safe_agent_action,
+
+        "suspicious_agent":
+            suspicious_agent_attack,
+
+        "malicious_agent":
+            malicious_agent_attack
+
+    }
+
+
+
+    results = []
+
+
+
+    for item in scenarios:
+
+
+        scenario_name = item["scenario"]
+
+
+
+        # Seed reputation history
+        # for demo scenarios
+
+        if scenario_name == "suspicious_agent":
+
+            seed_suspicious_agent()
+
+
+
+        elif scenario_name == "malicious_agent":
+
+            seed_malicious_agent()
+
+
+
+        attack_request = handlers[
+            scenario_name
+        ]()
+
+
+
+        decision_request = DecisionRequest(
+            **attack_request
+        )
+
+
+
+        decision_result = evaluate_action(
+            decision_request
+        )
+
+
+
+        simulation = create_simulation(
+            attack_request,
+            decision_result
+        )
+
+
+
+        results.append({
+
+            "scenario":
+                item["name"],
+
+
+            "decision":
+                decision_result.get(
+                    "decision"
+                ),
+
+
+            "risk_score":
+                decision_result.get(
+                    "adjusted_risk_score",
+                    decision_result.get(
+                        "risk_score",
+                        0
+                    )
+                ),
+
+
+            "details":
+                simulation
+
+        })
+
+
+
+    return {
+
+        "demo":
+            "Agentic Wallet Guardian Demo",
+
+        "description":
+            "AI Security Trust Layer for Autonomous Web3 Agents",
+
+        "security_flow":
+
+        [
+
+            "Agent Request",
+
+            "Wallet Analysis",
+
+            "Policy Engine",
+
+            "Reputation Check",
+
+            "Risk Fusion",
+
+            "Guardian Decision"
+
+        ],
+
+
+        "results":
+            results
+
+    }

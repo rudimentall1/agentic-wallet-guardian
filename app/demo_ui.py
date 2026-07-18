@@ -6,6 +6,7 @@ def demo_ui_page():
     html = """
 <!DOCTYPE html>
 <html>
+
 <head>
 
 <title>Agentic Wallet Guardian v2</title>
@@ -13,147 +14,139 @@ def demo_ui_page():
 <style>
 
 body {
-    font-family: Arial, sans-serif;
+    margin:0;
+    padding:20px;
     background:#070b14;
     color:#e5e7eb;
-    padding:30px;
+    font-family:Arial, sans-serif;
+}
+
+
+.container {
+    max-width:1000px;
+    margin:auto;
+}
+
+
+.header {
+    text-align:center;
+    margin-bottom:35px;
 }
 
 
 h1 {
-    text-align:center;
-    margin:8px;
-    font-size:26px;
+    font-size:22px;
     font-weight:600;
-    letter-spacing:0.3px;
+    margin:0;
 }
+
 
 .subtitle {
-    text-align:center;
     color:#94a3b8;
-    margin-bottom:20px;
+    margin-top:10px;
 }
 
 
-.section {
-
-    background:#0f172a;
-    border:1px solid #1e293b;
-    border-radius:14px;
-    padding:22px;
-    margin:18px auto;
-    max-width:1000px;
-
-}
-
-
-.pipeline {
-
-    text-align:center;
-    font-size:15px;
-    padding:15px;
-    color:#cbd5e1;
-
-}
-
-
-.trust {
-
-    display:flex;
-    justify-content:center;
-    gap:15px;
-    flex-wrap:wrap;
-
-}
-
-
-.trust-card {
-
-    background:#0f172a;
-    border-radius:10px;
-    padding:12px;
-    width:200px;
-    text-align:center;
-
-}
-
-
-.results {
-
-    display:flex;
-    justify-content:center;
-    gap:15px;
-    flex-wrap:wrap;
-
-}
-
-
-.card {
+.panel {
 
     background:#111827;
     border:1px solid #1e293b;
-    border-radius:14px;
-    padding:20px;
-    width:220px;
-    text-align:center;
+    border-radius:16px;
+    padding:16px;
+    margin-bottom:12px;
 
 }
 
 
-.allow {
-border:2px solid #22c55e;
-}
-
-
-.warn {
-border:2px solid #eab308;
-}
-
-
-.block {
-border:2px solid #ef4444;
-}
-
-
-.decision {
-
-font-size:25px;
-font-weight:bold;
-
-}
-
-
-.power {
-
-text-align:center;
-
-}
-
-
-
-.section h3 {
-
-    color:#cbd5e1;
-    font-size:16px;
-    font-weight:600;
-    letter-spacing:0.4px;
-    margin-bottom:18px;
-
-}
-
-.card h3 {
-
-    font-size:17px;
-    font-weight:600;
-    letter-spacing:0.5px;
-
-}
-
-.message {
+.title {
 
     color:#94a3b8;
-    font-size:14px;
-    margin-top:12px;
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    margin-bottom:20px;
+
+}
+
+
+input {
+
+    width:75%;
+    background:#0b1220;
+    border:1px solid #334155;
+    color:white;
+    padding:10px;
+    border-radius:8px;
+    font-size:13px;
+
+}
+
+
+button {
+
+    background:#2563eb;
+    border:0;
+    color:white;
+    padding:10px 18px;
+    border-radius:8px;
+    cursor:pointer;
+
+}
+
+
+.grid {
+
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:20px;
+
+}
+
+
+.metric {
+
+    background:#0b1220;
+    padding:14px;
+    border-radius:10px;
+
+}
+
+
+.label {
+
+    color:#94a3b8;
+    font-size:13px;
+
+}
+
+
+.value {
+
+    font-size:20px;
+    margin-top:6px;
+    font-weight:600;
+
+}
+
+
+.low {
+
+    color:#22c55e;
+
+}
+
+
+.result {
+
+    line-height:1.8;
+    color:#cbd5e1;
+
+}
+
+
+.signal {
+
+    margin-top:8px;
 
 }
 
@@ -166,139 +159,56 @@ text-align:center;
 <body>
 
 
+<div class="container">
+
+
+<div class="header">
+
 <h1>
 Agentic Wallet Guardian v2
 </h1>
 
-
 <div class="subtitle">
-AI Security Layer for Autonomous Web3 Agents
-</div>
-
-
-
-<div class="section">
-
-<h3>
-Security Pipeline
-</h3>
-
-<div class="pipeline">
-
-🤖 Request →
-🔍 Wallet →
-📜 Policy →
-⭐ Reputation →
-⚡ Fusion →
-🛡 Decision
-
+AI Security Intelligence Layer for Autonomous Web3 Agents
 </div>
 
 </div>
 
 
 
+<div class="panel">
 
-<div class="section">
-
-<h3>
-Agent Trust Layer
-</h3>
-
-
-<div class="trust">
-
-
-<div class="trust-card">
-🟢 Trusted Agent
-<br>
-100 / 100
-<br>
-TRUSTED
+<div class="title">
+Wallet Analysis
 </div>
 
 
-<div class="trust-card">
-🟡 Unknown Agent
-<br>
-50 / 100
-<br>
-MONITOR
-</div>
+<input id="wallet"
+value="0x742d35Cc6634C0532925a3b844Bc454e4438f44e">
 
 
-<div class="trust-card">
-🔴 Drainer Agent
-<br>
-0 / 100
-<br>
-BLOCKED
-</div>
+<button onclick="analyze()">
+Analyze
+</button>
 
-
-</div>
 
 </div>
 
 
 
 
-<div class="section results">
+<div id="output">
 
 
-<div class="card allow">
+<div class="panel">
 
-<h3>
-🟢 SAFE AGENT
-</h3>
-
-Risk Score:
-10/100
-
-<p class="decision">
-ALLOW
-</p>
-
-Transaction approved.
-
+<div class="title">
+Security Assessment
 </div>
 
-
-
-<div class="card warn">
-
-<h3>
-🟡 UNKNOWN AGENT
-</h3>
-
-Risk Score:
-50/100
-
-<p class="decision">
-WARN
-</p>
-
-Review required.
-
+<div class="result">
+Waiting for wallet analysis...
 </div>
-
-
-
-
-<div class="card block">
-
-<h3>
-🔴 MALICIOUS AGENT
-</h3>
-
-Risk Score:
-100/100
-
-<p class="decision">
-BLOCK
-</p>
-
-Threat detected.
 
 </div>
 
@@ -307,26 +217,175 @@ Threat detected.
 
 
 
+</div>
 
-<div class="section power">
 
-<h3>
-Powered By
-</h3>
 
-🧠 Agent Reputation Engine
-&nbsp;&nbsp;
-⚡ Risk Fusion Engine
-&nbsp;&nbsp;
-🔒 Guardian Policy Engine
+
+<script>
+
+async function analyze(){
+
+
+const address =
+document.getElementById("wallet").value;
+
+
+const response =
+await fetch("/agent",
+{
+
+method:"POST",
+
+headers:
+{
+"Content-Type":"application/json"
+},
+
+body:
+JSON.stringify(
+{
+address:address
+}
+)
+
+});
+
+
+const data =
+await response.json();
+
+
+const a =
+data.result.analysis;
+
+
+
+document.getElementById("output").innerHTML = `
+
+
+<div class="panel">
+
+<div class="title">
+Security Decision
+</div>
+
+<div class="grid">
+
+
+<div class="metric">
+
+<div class="label">
+Trust Score
+</div>
+
+<div class="value">
+${a.trust_score}/100
+</div>
 
 </div>
 
+
+<div class="metric">
+
+<div class="label">
+Risk Level
+</div>
+
+<div class="value low">
+${a.risk_level}
+</div>
+
+</div>
+
+
+<div class="metric">
+
+<div class="label">
+Decision
+</div>
+
+<div class="value">
+${a.final_decision.final_decision.replaceAll("_"," ")}
+</div>
+
+</div>
+
+
+<div class="metric">
+
+<div class="label">
+Confidence
+</div>
+
+<div class="value">
+${a.final_decision.confidence*100}%
+</div>
+
+</div>
+
+
+</div>
+
+</div>
+
+
+
+<div class="panel">
+
+<div class="title">
+Wallet Intelligence
+</div>
+
+<div class="result">
+
+Balance:
+${Number(a.wallet_metrics.balance_eth).toLocaleString(undefined,{maximumFractionDigits:0})} ETH
+
+<br><br>
+
+Transactions:
+${a.wallet_metrics.transactions.toLocaleString()}
+
+<br><br>
+
+Wallet Age:
+${a.wallet_metrics.wallet_age_days} days
+
+</div>
+
+</div>
+
+
+
+<div class="panel">
+
+<div class="title">
+Security Indicators
+</div>
+
+<div class="result">
+
+${a.signals.map(
+x => "<div class='signal'>"+x+"</div>"
+).join("")}
+
+</div>
+
+</div>
+
+`;
+
+}
+
+
+</script>
 
 
 </body>
+
 </html>
 
 """
 
-    return HTMLResponse(html)
+    return HTMLResponse(content=html)

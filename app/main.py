@@ -7,7 +7,7 @@ from app.decision_api import DecisionRequest, evaluate_action
 app = FastAPI(
     title="Agentic Wallet Guardian",
     description="AI security decision agent that helps autonomous agents evaluate Web3 wallet and transaction risks.",
-    version="1.0.0"
+    version="2.1.0"
 )
 
 
@@ -20,7 +20,7 @@ def home():
     return {
         "agent": "Agentic Wallet Guardian",
         "status": "online",
-        "version": "1.0.0",
+        "version": "2.1.0",
         "type": "ASP"
     }
 

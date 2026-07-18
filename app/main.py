@@ -12,10 +12,6 @@ from app.core.threat_simulation import (
     safe_agent_action
 )
 
-from app.core.demo_scenarios import (
-    seed_malicious_agent,
-    seed_suspicious_agent
-)
 
 
 app = FastAPI(
@@ -281,18 +277,8 @@ def demo():
 
 
 
-        # Seed reputation history
-        # for demo scenarios
-
-        if scenario_name == "suspicious_agent":
-
-            seed_suspicious_agent()
-
-
-
-        elif scenario_name == "malicious_agent":
-
-            seed_malicious_agent()
+        # ChainHack demo uses static reputation memory.
+        # No writes to guardian_memory.json.
 
 
 
@@ -309,7 +295,8 @@ def demo():
 
 
         decision_result = evaluate_action(
-            decision_request
+            decision_request,
+            demo=True
         )
 
 

@@ -6,13 +6,25 @@ based on previous Guardian decisions.
 """
 
 from app.core.memory_engine import analyze_memory
+from app.core.demo_memory import get_demo_memory
 
 
-def calculate_agent_reputation(agent):
+def calculate_agent_reputation(
+    agent,
+    demo=False
+):
 
-    memory = analyze_memory(
-        agent=agent
-    )
+    if demo:
+
+        memory = get_demo_memory(
+            agent
+        )
+
+    else:
+
+        memory = analyze_memory(
+            agent=agent
+        )
 
 
     reputation = 100

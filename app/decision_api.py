@@ -21,9 +21,16 @@ class DecisionRequest(BaseModel):
 
 
 
-def evaluate_action(request: DecisionRequest):
+def evaluate_action(
+    request: DecisionRequest,
+    demo: bool = False
+):
 
     request_dict = request.model_dump()
+
+
+    if demo:
+        request_dict["demo_mode"] = True
 
 
     result = guardian_evaluate(

@@ -117,6 +117,11 @@ def evaluate_action(request):
 
             request.get(
                 "agent"
+            ),
+
+            demo=request.get(
+                "demo_mode",
+                False
             )
 
         )
@@ -172,25 +177,27 @@ def evaluate_action(request):
     # Save final decision
     #
 
-    save_decision(
+    if not request.get("demo_mode"):
 
-        agent=request.get(
-            "agent"
-        ),
+        save_decision(
 
-        wallet=request.get(
-            "wallet"
-        ),
+            agent=request.get(
+                "agent"
+            ),
 
-        action=request.get(
-            "action"
-        ),
+            wallet=request.get(
+                "wallet"
+            ),
 
-        decision=decision,
+            action=request.get(
+                "action"
+            ),
 
-        risk_score=adjusted_risk_score
+            decision=decision,
 
-    )
+            risk_score=adjusted_risk_score
+
+        )
 
 
 

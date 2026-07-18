@@ -1,6 +1,7 @@
 from app.analyzer import analyze
 from app.policy_engine import evaluate_policy
 from app.core.risk_fusion import calculate_risk_fusion
+from app.core.explanation_engine import generate_explanation
 
 
 def evaluate_action(request):
@@ -29,7 +30,7 @@ def evaluate_action(request):
 
 
     #
-    # Wallet trust score
+    # Wallet trust extraction
     #
 
     wallet_score = None
@@ -44,7 +45,7 @@ def evaluate_action(request):
 
 
     #
-    # Policy Engine
+    # Policy Layer
     #
 
     policy_result = evaluate_policy(
@@ -83,14 +84,12 @@ def evaluate_action(request):
 
 
     decision = fusion_result.get(
-        "decision",
-        "ALLOW"
+        "decision"
     )
 
 
     risk_score = fusion_result.get(
-        "risk_score",
-        0
+        "risk_score"
     )
 
 
@@ -102,7 +101,23 @@ def evaluate_action(request):
 
 
     #
-    # Guardian Action
+    # Explanation Layer
+    #
+
+    explanation = generate_explanation(
+
+        decision,
+
+        risk_score,
+
+        reasons
+
+    )
+
+
+
+    #
+    # Guardian action
     #
 
     actions = {
@@ -122,6 +137,7 @@ def evaluate_action(request):
 
     return {
 
+
         "guardian":
             "Agentic Wallet Guardian",
 
@@ -131,27 +147,30 @@ def evaluate_action(request):
 
 
         "risk_score":
-            min(
-                risk_score,
-                100
-            ),
+            risk_score,
 
 
         "reasons":
             reasons,
 
 
+        "explanation":
+            explanation,
+
+
         "wallet_analysis":
             wallet_result,
 
 
-        "fusion":
+        "policy":
+            policy_result,
 
+
+        "risk_fusion":
             fusion_result,
 
 
         "guardian_action":
-
             actions.get(
                 decision
             )

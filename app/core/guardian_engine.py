@@ -1,10 +1,9 @@
 from app.analyzer import analyze
 from app.policy_engine import evaluate_policy
+from app.core.risk_fusion import calculate_risk_fusion
 
 
 def evaluate_action(request):
-
-    reasons = []
 
     wallet_result = None
 
@@ -30,7 +29,7 @@ def evaluate_action(request):
 
 
     #
-    # Extract wallet trust score
+    # Wallet trust score
     #
 
     wallet_score = None
@@ -45,7 +44,7 @@ def evaluate_action(request):
 
 
     #
-    # Policy evaluation
+    # Policy Engine
     #
 
     policy_result = evaluate_policy(
@@ -67,73 +66,43 @@ def evaluate_action(request):
     )
 
 
-    reasons.extend(
-        policy_result.get(
-            "policy_reasons",
-            []
-        )
+
+    #
+    # Risk Fusion Layer
+    #
+
+    fusion_result = calculate_risk_fusion(
+
+        policy_result,
+
+        wallet_result,
+
+        request
+
     )
 
 
-
-    #
-    # Final decision fusion
-    #
-
-    decision = policy_result.get(
-        "policy_decision",
+    decision = fusion_result.get(
+        "decision",
         "ALLOW"
     )
 
 
-    risk_score = policy_result.get(
-        "policy_risk_score",
+    risk_score = fusion_result.get(
+        "risk_score",
         0
+    )
+
+
+    reasons = fusion_result.get(
+        "reasoning",
+        []
     )
 
 
 
     #
-    # Wallet Risk influence
-    #
-
-    if wallet_score is not None:
-
-
-        if wallet_score < 30:
-
-            decision = "BLOCK"
-
-            risk_score = max(
-                risk_score,
-                90
-            )
-
-            reasons.append(
-                "Wallet trust score critically low"
-            )
-
-
-        elif wallet_score < 50:
-
-            if decision == "ALLOW":
-
-                decision = "WARN"
-
-
-            risk_score = max(
-                risk_score,
-                60
-            )
-
-            reasons.append(
-                "Wallet trust score requires review"
-            )
-
-
-
-    #
-    # Guardian action
+    # Guardian Action
     #
 
     actions = {
@@ -148,6 +117,7 @@ def evaluate_action(request):
             "Execution blocked"
 
     }
+
 
 
     return {
@@ -175,7 +145,13 @@ def evaluate_action(request):
             wallet_result,
 
 
+        "fusion":
+
+            fusion_result,
+
+
         "guardian_action":
+
             actions.get(
                 decision
             )

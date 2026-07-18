@@ -1,185 +1,256 @@
 # Agentic Wallet Guardian
 
-AI-powered Web3 security decision agent for autonomous AI agents.
+AI Security Firewall for Autonomous Web3 Agents.
 
-## Status
+Agentic Wallet Guardian protects users from risky actions performed by autonomous AI agents by analyzing wallet behavior, transaction intent, agent reputation, and security signals before execution.
 
-✅ Agent Service Provider (ASP)  
-✅ REST API  
-✅ Ethereum Wallet Intelligence  
-✅ Explainable Risk Decisions
-
-
-## Overview
-
-Agentic Wallet Guardian is an Agent Service Provider (ASP) that helps AI agents make safer blockchain decisions.
-
-Before an autonomous agent interacts with a wallet, token, or smart contract, Wallet Guardian evaluates security risks and provides an explainable decision:
-
-- ALLOW
-- ALLOW_WITH_LIMITATIONS
-- WARN
-- BLOCK
-
-The goal is to provide a trust layer between AI agents and Web3.
-
+---
 
 ## Problem
 
-AI agents are becoming capable of executing blockchain actions.
+AI agents are becoming capable of controlling wallets and executing blockchain transactions.
 
-However, autonomous transactions create a new security challenge:
+However, existing wallet security solutions mainly protect private keys.
 
-> How can an AI agent know whether a wallet interaction is safe?
+They do not answer:
 
+> Should this autonomous AI agent be trusted to perform this action?
+
+Autonomous agents need a security decision layer.
+
+---
 
 ## Solution
 
-Agentic Wallet Guardian analyzes:
+Agentic Wallet Guardian acts as a security layer between AI agents and Web3 execution.
+
+Before an agent performs an action, Guardian evaluates:
 
 - wallet behavior
-- transaction history
+- transaction intent
+- smart contract interaction
+- security signals
+- AI agent reputation
+- previous agent behavior history
+
+Then it provides an explainable decision:
+
+
+ALLOW
+WARN
+BLOCK
+
+
+---
+
+## Key Features
+
+### Wallet Intelligence
+
+Analyzes:
+
+- wallet activity
 - wallet age
-- token intelligence
-- smart contract risks
-- approval security
-
-and generates:
-
-- trust score
-- risk level
-- confidence score
-- explainable reasoning
-- recommended action
+- transaction history
+- blockchain signals
 
 
-## Architecture
+### Agent Reputation Engine
 
-```text
-AI Agent
+Guardian remembers previous agent behavior.
+
+Example:
+
+
+Agent:
+drainer-agent-777
+
+History:
+
+WARN x3
+BLOCK x2
+
+↓
+
+Reputation Score:
+45/100
+
+↓
+
+Higher Risk
+
+
+---
+
+### Risk Fusion Engine
+
+Combines:
+
+
+Wallet Risk
++
+Transaction Policy Risk
++
+Security Signals
++
+Agent Reputation
+
+
+into one final risk score.
+
+---
+
+### Explainable Security Decisions
+
+Guardian does not only block.
+
+It explains why:
+
+Example:
+
+
+Decision:
+
+BLOCK
+
+Reasons:
+
+Large transaction requires review
+External contract interaction
+Suspicious agent history
+
+---
+
+# Architecture
+
+
+Autonomous AI Agent
+
     |
     v
-Agentic Wallet Guardian ASP
+
+Agentic Wallet Guardian
+
     |
     +-- Wallet Intelligence
     |
-    +-- Token Intelligence
-    |
-    +-- Contract Intelligence
-    |
-    +-- Approval Security
+    +-- Policy Engine
     |
     +-- Risk Fusion Engine
     |
-    v
+    +-- Agent Reputation Engine
+    |
+    +-- Memory Engine
+    |
+    +-- Explainable Decision Engine
+
+    |
+
 ALLOW / WARN / BLOCK
-```
 
 
-## Demo Scenario
+---
 
-An AI trading agent wants to execute a Web3 transaction.
+# Threat Simulation Demo
 
-Before execution:
+Guardian can simulate malicious autonomous agent behavior.
 
-```text
-AI Agent
-    |
-    v
-Agentic Wallet Guardian
-    |
-    v
-Security Decision
-```
+Scenario:
 
-Example result:
 
-```text
+Agent:
+drainer-agent-777
+
+Action:
+
+transfer 500 ETH
+
+History:
+
+WARN x3
+BLOCK x2
+
+Destination:
+
+Unknown contract
+
+
+Guardian response:
+
+
+Attack Detected:
+
+AI agent transaction abuse
+
 Decision:
-ALLOW_WITH_LIMITATIONS
 
-Trust Score:
-94/100
+BLOCK
 
-Risk Level:
-LOW
-```
+Risk Score:
 
-Reasoning:
-
-- Long wallet history
-- Large transaction activity
-- No critical threats detected
-- Approval intelligence limited
+80/100
 
 
-## API
+Explanation:
 
-### Analyze Wallet
+
+Transaction was blocked because
+security policies identified critical risk.
+
+
+---
+
+# API
+
+## Decision Endpoint
 
 POST:
 
-```
-/agent
-```
 
-Request:
+/decision
 
-```json
-{
-  "address": "0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-}
-```
 
-Response:
+Example:
 
 ```json
 {
-  "service": "web3_security_decision",
-  "agent": "Agentic Wallet Guardian",
-  "result": {
-    "risk_level": "LOW",
-    "trust_score": 94,
-    "decision": "ALLOW_WITH_LIMITATIONS",
-    "confidence": 1.0
-  }
+ "agent":"trading-agent-v1",
+ "action":"transfer",
+ "amount":100,
+ "wallet":"0x..."
 }
-```
+Threat Simulation
 
+POST:
 
-## Available Skills
+/simulate
 
-### Wallet Security Analysis
+Example:
 
-Analyzes wallet behavior and blockchain activity.
+{
+ "scenario":"malicious_agent"
+}
 
+Returns:
 
-### Token Risk Analysis
+{
+ "attack_detected":true,
+ "threat_type":"AI agent transaction abuse",
+ "decision":"BLOCK"
+}
+Tech Stack
+Python 3.10
+FastAPI
+Web3.py
+Ethereum RPC
+AI Agent Architecture
+Risk Fusion Engine
+Explainable AI Decisions
+Vision
 
-Evaluates token-related risk signals.
+As autonomous AI agents gain access to digital assets, security cannot rely only on private key protection.
 
+Future Web3 requires intelligent security agents that evaluate actions before execution.
 
-### Contract Intelligence
+Agentic Wallet Guardian provides this trust layer.
 
-Checks smart contract interaction risks.
-
-
-### Approval Security
-
-Analyzes approval-related security concerns.
-
-
-## Tech Stack
-
-- Python 3.10
-- FastAPI
-- Ethereum RPC
-- AI Agent Architecture
-- Risk Fusion Engine
-
-
-## Vision
-
-As autonomous AI agents begin interacting with digital assets, they need security and trust layers.
-
-Agentic Wallet Guardian provides an intelligent security decision layer before Web3 actions are executed.

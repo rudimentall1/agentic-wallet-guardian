@@ -136,6 +136,11 @@ def evaluate_action(request):
     )
 
 
+    print("DEBUG REPUTATION:", agent_reputation)
+    print("DEBUG BASE RISK:", base_risk_score)
+    print("DEBUG ADJUSTED:", adjusted_risk_score)
+
+
     if agent_reputation:
 
         if agent_reputation.get("risk_modifier", 0) > 0:

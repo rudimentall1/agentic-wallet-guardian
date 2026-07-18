@@ -1,5 +1,5 @@
 """
-Guardian Risk Fusion Engine v1
+Guardian Risk Fusion Engine v2
 
 Combines multiple security dimensions:
 
@@ -7,8 +7,9 @@ Combines multiple security dimensions:
 - wallet trust
 - contract risk
 - policy risk
+- AI agent reputation
 
-Produces unified risk score and reasoning.
+Produces unified risk score and explainable decision.
 """
 
 
@@ -78,6 +79,47 @@ def calculate_risk_fusion(
             )
 
 
+
+    #
+    # AI Agent Reputation Layer
+    #
+
+    agent = request.get(
+        "agent"
+    )
+
+
+    if agent:
+
+
+        #
+        # Unknown agents
+        #
+
+        if "unknown" in agent.lower():
+
+            risk_score += 40
+
+            reasons.append(
+                "Unknown AI agent reputation"
+            )
+
+
+
+        #
+        # Malicious agents
+        #
+
+        if "drainer" in agent.lower():
+
+            risk_score += 60
+
+            reasons.append(
+                "Malicious AI agent pattern detected"
+            )
+
+
+
     #
     # Contract interaction
     #
@@ -96,18 +138,39 @@ def calculate_risk_fusion(
         )
 
 
+
+    #
+    # Large transaction
+    #
+
+    amount = request.get(
+        "amount",
+        0
+    )
+
+
+    if amount >= 100:
+
+        risk_score += 20
+
+        reasons.append(
+            "Large transaction requires review"
+        )
+
+
+
     #
     # Normalize
     #
 
-    risk_score = min(
-        risk_score,
-        100
-    )
+    if risk_score > 100:
+
+        risk_score = 100
+
 
 
     #
-    # Decision
+    # Final decision
     #
 
     if risk_score >= 80:
@@ -127,6 +190,7 @@ def calculate_risk_fusion(
 
 
     return {
+
 
         "risk_score":
             risk_score,

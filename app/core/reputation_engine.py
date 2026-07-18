@@ -1,13 +1,11 @@
 """
-Guardian Agent Reputation Engine v1
+Guardian Agent Reputation Engine v2
 
-Calculates trust score for autonomous agents
+Calculates trust score for autonomous AI agents
 based on previous Guardian decisions.
 """
 
-
 from app.core.memory_engine import analyze_memory
-
 
 
 def calculate_agent_reputation(agent):
@@ -21,12 +19,12 @@ def calculate_agent_reputation(agent):
 
 
     reputation -= (
-        memory["previous_warnings"] * 5
+        memory["previous_warnings"] * 10
     )
 
 
     reputation -= (
-        memory["previous_blocks"] * 20
+        memory["previous_blocks"] * 25
     )
 
 

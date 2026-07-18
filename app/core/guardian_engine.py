@@ -4,6 +4,7 @@ from app.core.risk_fusion import calculate_risk_fusion
 from app.core.explanation_engine import generate_explanation
 from app.core.memory_engine import save_decision
 from app.core.reputation_engine import calculate_agent_reputation
+from app.core.reputation_adjustment import apply_reputation_adjustment
 
 
 def evaluate_action(request):
@@ -30,6 +31,7 @@ def evaluate_action(request):
             }
 
 
+
     #
     # Wallet trust extraction
     #
@@ -42,6 +44,7 @@ def evaluate_action(request):
         wallet_score = wallet_result.get(
             "trust_score"
         )
+
 
 
     #
@@ -65,6 +68,7 @@ def evaluate_action(request):
         )
 
     )
+
 
 
     #
@@ -98,6 +102,7 @@ def evaluate_action(request):
     )
 
 
+
     #
     # Memory Layer
     #
@@ -123,6 +128,7 @@ def evaluate_action(request):
     )
 
 
+
     #
     # Agent Reputation Layer
     #
@@ -141,6 +147,21 @@ def evaluate_action(request):
         )
 
 
+
+    #
+    # Reputation Risk Adjustment
+    #
+
+    adjusted_risk_score = apply_reputation_adjustment(
+
+        risk_score,
+
+        agent_reputation
+
+    )
+
+
+
     #
     # Explanation Layer
     #
@@ -149,11 +170,12 @@ def evaluate_action(request):
 
         decision,
 
-        risk_score,
+        adjusted_risk_score,
 
         reasons
 
     )
+
 
 
     #
@@ -174,6 +196,7 @@ def evaluate_action(request):
     }
 
 
+
     return {
 
 
@@ -187,6 +210,10 @@ def evaluate_action(request):
 
         "risk_score":
             risk_score,
+
+
+        "adjusted_risk_score":
+            adjusted_risk_score,
 
 
         "reasons":
@@ -216,6 +243,10 @@ def evaluate_action(request):
 
 
         "agent_reputation":
-            agent_reputation
+            agent_reputation,
+
+
+        "request":
+            request
 
     }

@@ -22,5 +22,13 @@
         "action": "transfer",
         "decision": "WARN",
         "risk_score": 40
+    },
+    {
+        "timestamp": "2026-07-18T07:27:39.020189",
+        "agent": "test-agent-v1",
+        "wallet": "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+        "action": "transfer",
+        "decision": "WARN",
+        "risk_score": 40
     }
 ]

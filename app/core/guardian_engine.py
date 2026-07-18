@@ -3,6 +3,7 @@ from app.policy_engine import evaluate_policy
 from app.core.risk_fusion import calculate_risk_fusion
 from app.core.explanation_engine import generate_explanation
 from app.core.memory_engine import save_decision
+from app.core.reputation_engine import calculate_agent_reputation
 
 
 def evaluate_action(request):
@@ -29,7 +30,6 @@ def evaluate_action(request):
             }
 
 
-
     #
     # Wallet trust extraction
     #
@@ -42,7 +42,6 @@ def evaluate_action(request):
         wallet_score = wallet_result.get(
             "trust_score"
         )
-
 
 
     #
@@ -66,7 +65,6 @@ def evaluate_action(request):
         )
 
     )
-
 
 
     #
@@ -126,6 +124,24 @@ def evaluate_action(request):
 
 
     #
+    # Agent Reputation Layer
+    #
+
+    agent_reputation = None
+
+
+    if request.get("agent"):
+
+        agent_reputation = calculate_agent_reputation(
+
+            request.get(
+                "agent"
+            )
+
+        )
+
+
+    #
     # Explanation Layer
     #
 
@@ -138,7 +154,6 @@ def evaluate_action(request):
         reasons
 
     )
-
 
 
     #
@@ -157,7 +172,6 @@ def evaluate_action(request):
             "Execution blocked"
 
     }
-
 
 
     return {
@@ -198,6 +212,10 @@ def evaluate_action(request):
         "guardian_action":
             actions.get(
                 decision
-            )
+            ),
+
+
+        "agent_reputation":
+            agent_reputation
 
     }

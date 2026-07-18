@@ -6,7 +6,6 @@ def demo_ui_page():
     html = """
 <!DOCTYPE html>
 <html>
-
 <head>
 
 <title>Agentic Wallet Guardian v2</title>
@@ -15,30 +14,72 @@ def demo_ui_page():
 
 body {
     font-family: Arial, sans-serif;
-    background: #0b1020;
-    color: white;
-    padding: 40px;
+    background:#0b1020;
+    color:white;
+    padding:20px;
 }
 
 
 h1 {
-    text-align: center;
+    text-align:center;
+    margin:5px;
+    font-size:28px;
 }
-
 
 .subtitle {
     text-align:center;
     color:#94a3b8;
+    margin-bottom:20px;
 }
 
 
-.container {
+.section {
+
+    background:#151c35;
+    border-radius:12px;
+    padding:15px;
+    margin:15px auto;
+    max-width:1000px;
+
+}
+
+
+.pipeline {
+
+    text-align:center;
+    font-size:18px;
+    padding:10px;
+
+}
+
+
+.trust {
 
     display:flex;
-    gap:20px;
     justify-content:center;
+    gap:15px;
     flex-wrap:wrap;
-    margin-top:40px;
+
+}
+
+
+.trust-card {
+
+    background:#0f172a;
+    border-radius:10px;
+    padding:12px;
+    width:200px;
+    text-align:center;
+
+}
+
+
+.results {
+
+    display:flex;
+    justify-content:center;
+    gap:15px;
+    flex-wrap:wrap;
 
 }
 
@@ -46,66 +87,39 @@ h1 {
 .card {
 
     background:#151c35;
-    border-radius:15px;
-    padding:25px;
-    width:300px;
+    border-radius:12px;
+    padding:15px;
+    width:220px;
 
 }
 
 
-.safe {
-    border:2px solid #22c55e;
+.allow {
+border:2px solid #22c55e;
 }
 
 
 .warn {
-    border:2px solid #eab308;
+border:2px solid #eab308;
 }
 
 
-.danger {
-    border:2px solid #ef4444;
+.block {
+border:2px solid #ef4444;
 }
 
 
 .decision {
 
-    font-size:28px;
-    font-weight:bold;
+font-size:25px;
+font-weight:bold;
 
 }
 
 
-.score {
+.power {
 
-    font-size:22px;
-
-}
-
-
-.reason {
-
-    color:#cbd5e1;
-
-}
-
-
-.pipeline {
-
-    margin:50px auto;
-    max-width:600px;
-    background:#111827;
-    padding:25px;
-    border-radius:15px;
-    text-align:center;
-
-}
-
-
-.step {
-
-    padding:10px;
-    font-size:18px;
+text-align:center;
 
 }
 
@@ -129,174 +143,156 @@ AI Security Layer for Autonomous Web3 Agents
 
 
 
+<div class="section">
+
+<h3>
+Security Pipeline
+</h3>
+
 <div class="pipeline">
 
-<h2>Security Pipeline</h2>
+🤖 Request →
+🔍 Wallet →
+📜 Policy →
+⭐ Reputation →
+⚡ Fusion →
+🛡 Decision
 
-<div class="step">
-🤖 Agent Request
 </div>
 
-<div class="step">
-↓
 </div>
 
-<div class="step">
-🔍 Wallet Analysis
+
+
+
+<div class="section">
+
+<h3>
+⭐ Agent Trust Layer
+</h3>
+
+
+<div class="trust">
+
+
+<div class="trust-card">
+🟢 Trusted Agent
+<br>
+100 / 100
+<br>
+TRUSTED
 </div>
 
-<div class="step">
-↓
+
+<div class="trust-card">
+🟡 Unknown Agent
+<br>
+50 / 100
+<br>
+MONITOR
 </div>
 
-<div class="step">
-📜 Policy Engine
+
+<div class="trust-card">
+🔴 Drainer Agent
+<br>
+0 / 100
+<br>
+BLOCKED
 </div>
 
-<div class="step">
-↓
+
 </div>
 
-<div class="step">
-⭐ Agent Reputation
 </div>
 
-<div class="step">
-↓
+
+
+
+<div class="section results">
+
+
+<div class="card allow">
+
+<h3>
+🟢 SAFE AGENT
+</h3>
+
+Risk Score:
+10/100
+
+<p class="decision">
+ALLOW
+</p>
+
+Transaction approved.
+
 </div>
 
-<div class="step">
+
+
+<div class="card warn">
+
+<h3>
+🟡 UNKNOWN AGENT
+</h3>
+
+Risk Score:
+50/100
+
+<p class="decision">
+WARN
+</p>
+
+Review required.
+
+</div>
+
+
+
+
+<div class="card block">
+
+<h3>
+🔴 MALICIOUS AGENT
+</h3>
+
+Risk Score:
+100/100
+
+<p class="decision">
+BLOCK
+</p>
+
+Threat detected.
+
+</div>
+
+
+</div>
+
+
+
+
+<div class="section power">
+
+<h3>
+🛡 Powered By
+</h3>
+
+🧠 Agent Reputation Engine
+&nbsp;&nbsp;
 ⚡ Risk Fusion Engine
-</div>
-
-<div class="step">
-↓
-</div>
-
-<div class="step">
-🛡 Guardian Decision
-</div>
+&nbsp;&nbsp;
+🔒 Guardian Policy Engine
 
 </div>
 
-
-
-<div id="results" class="container">
-
-Loading Guardian analysis...
-
-</div>
-
-
-
-<script>
-
-
-function cardClass(decision){
-
-    if(decision === "ALLOW"){
-        return "safe";
-    }
-
-    if(decision === "WARN"){
-        return "warn";
-    }
-
-    return "danger";
-
-}
-
-
-
-function render(data){
-
-    let html = "";
-
-
-    data.results.forEach(item => {
-
-
-        let details = item.details;
-
-
-        let explanation =
-            details.security_explanation;
-
-
-        html += `
-
-        <div class="card ${cardClass(item.decision)}">
-
-            <h2>${item.scenario}</h2>
-
-
-            <p class="score">
-                Risk Score:
-                ${item.risk_score}/100
-            </p>
-
-
-            <p class="decision">
-                ${item.decision}
-            </p>
-
-
-            <p class="reason">
-                ${explanation.explanation}
-            </p>
-
-
-            <p>
-                Threat:
-                ${details.threat_type}
-            </p>
-
-
-            <p>
-                Factors:
-                ${explanation.risk_factors.join(", ")}
-            </p>
-
-
-        </div>
-
-        `;
-
-
-    });
-
-
-    document.getElementById(
-        "results"
-    ).innerHTML = html;
-
-}
-
-
-
-fetch("/demo")
-
-.then(response => response.json())
-
-.then(data => render(data))
-
-
-.catch(error => {
-
-    document.getElementById(
-        "results"
-    ).innerHTML =
-    "Guardian connection error";
-
-});
-
-
-</script>
 
 
 </body>
-
 </html>
+
 """
 
     return HTMLResponse(html)

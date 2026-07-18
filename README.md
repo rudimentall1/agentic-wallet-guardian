@@ -320,39 +320,38 @@ Reasons:
 
 ## Health Check
 
-
 GET /health
-
 
 
 ## Capabilities
 
-
 GET /capabilities
 
 
+## Agent Security Decision
 
-## Security Decision
+AI agents send blockchain actions to Guardian and receive an explainable security decision.
 
-
-POST /decision
-
-
-
-## Threat Simulation
+POST /agent
 
 
-POST /simulate
-
-
-Example:
+Example request:
 
 ```json
 {
-  "scenario":"malicious_agent"
+  "address": "0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
 }
-Full Demo Showcase
+Example response:
+{
+  "decision": "ALLOW_WITH_LIMITATIONS",
+  "risk_level": "LOW",
+  "trust_score": 94,
+  "confidence": 1.0
+}
+Demo Showcase
+
 GET /demo
+
 Tech Stack
 Python 3.10
 FastAPI
@@ -362,4 +361,46 @@ Ethereum RPC
 Linux
 systemd
 AI Agent Architecture
+
+Guardian provides:
+
 Explainable Risk Engine
+Agent Reputation Layer
+Policy Evaluation
+Decision Intelligence
+Security Memory
+
+
+
+---
+
+# Why It Matters
+
+The future of Web3 will not be only human-driven.
+
+Autonomous AI agents will manage wallets, execute transactions and interact with smart contracts.
+
+These agents need a native security layer.
+
+Agentic Wallet Guardian provides:
+
+- machine-readable security decisions
+- autonomous risk evaluation
+- explainable reasoning
+- reputation-based trust
+- continuous security memory
+
+Guardian enables AI agents to operate safely without requiring humans to approve every action.
+
+---
+
+# Vision
+
+Agentic Wallet Guardian is building the security infrastructure for the agent economy.
+
+Not a wallet scanner.
+
+Not another address checker.
+
+A trust and decision layer for autonomous blockchain agents.
+

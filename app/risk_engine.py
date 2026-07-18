@@ -59,6 +59,68 @@ def calculate_risk_engine(
 
 
     #
+    # Wallet Profile Intelligence
+    #
+
+    balance = wallet_data.get(
+        "balance_eth",
+        0
+    )
+
+    transactions = wallet_data.get(
+        "transactions",
+        0
+    )
+
+    age = wallet_data.get(
+        "wallet_age_days",
+        0
+    )
+
+
+    wallet_profile = "UNKNOWN"
+
+
+    if (
+        age > 365
+        and transactions > 1000
+        and balance > 100
+    ):
+
+        wallet_profile = "ESTABLISHED_WALLET"
+
+        positive.append(
+            "Established wallet profile"
+        )
+
+
+    elif (
+        age > 365
+        and transactions > 1000
+        and balance < 0.01
+    ):
+
+        wallet_profile = "LOW_VALUE_ACTIVE_WALLET"
+
+        score -= 5
+
+        unknown.append(
+            "Low value wallet profile"
+        )
+
+
+    elif age < 30:
+
+        wallet_profile = "NEW_WALLET"
+
+        score -= 20
+
+        negative.append(
+            "New wallet profile"
+        )
+
+
+    #
     # Security layer
     #
 
@@ -265,6 +327,9 @@ def calculate_risk_engine(
 
 
     return {
+
+        "wallet_profile":
+            wallet_profile,
 
         "risk_score":
             score,

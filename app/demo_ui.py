@@ -352,6 +352,11 @@ ${a.wallet_metrics.transactions.toLocaleString()}
 Wallet Age:
 ${a.wallet_metrics.wallet_age_days} days
 
+<br><br>
+
+Wallet Profile:
+${a.risk_engine.wallet_profile.replaceAll("_"," ")}
+
 </div>
 
 </div>

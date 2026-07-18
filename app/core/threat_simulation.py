@@ -1,8 +1,19 @@
 """
-Guardian Threat Simulation Engine v1
+Guardian Threat Simulation Engine v2
 
-Creates realistic AI agent attack scenarios
+Creates realistic AI agent scenarios
 for ChainHack demonstration.
+
+Scenarios:
+
+safe_agent
+    trusted autonomous agent
+
+suspicious_agent
+    unknown agent with risky behavior
+
+malicious_agent
+    malicious AI agent attack
 """
 
 
@@ -13,18 +24,14 @@ def malicious_agent_attack():
         "agent":
             "drainer-agent-777",
 
-
         "wallet":
             "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
-
 
         "action":
             "transfer",
 
-
         "amount":
             500,
-
 
         "target_contract":
             "0xBAD0000000000000000000000000000000000001"
@@ -40,21 +47,17 @@ def suspicious_agent_attack():
         "agent":
             "unknown-agent-x",
 
-
         "wallet":
             "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
-
 
         "action":
             "transfer",
 
-
         "amount":
-            100,
-
+            50,
 
         "target_contract":
-            "0xUNKNOWN00000000000000000000000000000001"
+            None
 
     }
 
@@ -67,20 +70,16 @@ def safe_agent_action():
         "agent":
             "trusted-trading-agent",
 
-
         "wallet":
             "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
-
 
         "action":
             "swap",
 
-
         "amount":
-            10,
-
+            5,
 
         "target_contract":
-            "known-dex"
+            None
 
     }

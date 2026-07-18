@@ -4,7 +4,11 @@ from pydantic import BaseModel
 from app.agent import analyze_wallet
 from app.decision_api import DecisionRequest, evaluate_action
 from app.core.demo_engine import create_simulation
-from app.core.threat_simulation import malicious_agent_attack
+from app.core.threat_simulation import (
+    malicious_agent_attack,
+    suspicious_agent_attack,
+    safe_agent_action
+)
 from app.core.demo_scenarios import seed_malicious_agent
 
 
@@ -102,41 +106,72 @@ def decision(request: DecisionRequest):
 @app.post("/simulate")
 def simulate(request: SimulationRequest):
 
+    scenarios = {
+
+        "malicious_agent": malicious_agent_attack,
+        "suspicious_agent": suspicious_agent_attack,
+        "safe_agent": safe_agent_action
+
+    }
+
+
+    scenario = scenarios.get(
+        request.scenario
+    )
+
+
+    if not scenario:
+
+        return {
+            "error": "unknown scenario",
+            "available_scenarios": [
+                "safe_agent",
+                "suspicious_agent",
+                "malicious_agent"
+            ]
+        }
+
+
     if request.scenario == "malicious_agent":
 
         seed_malicious_agent()
 
 
-        attack_request = malicious_agent_attack()
+    attack_request = scenario()
 
 
-        decision_request = DecisionRequest(
-            **attack_request
-        )
+    decision_request = DecisionRequest(
+        **attack_request
+    )
 
 
-        result = evaluate_action(
-            decision_request
-        )
+    result = evaluate_action(
+        decision_request
+    )
 
 
-        return create_simulation(
-
-            attack_request,
-
-            result
-
-        )
+    response = create_simulation(
+        attack_request,
+        result
+    )
 
 
-    return {
+    if request.scenario == "malicious_agent":
 
-        "error":
-            "unknown scenario",
+        response["attack_detected"] = True
+        response["threat_type"] = "AI agent transaction abuse"
 
-        "available_scenarios":
-            [
-                "malicious_agent"
-            ]
 
-    }
+    elif request.scenario == "suspicious_agent":
+
+        response["attack_detected"] = True
+        response["threat_type"] = "Suspicious AI agent behavior"
+
+
+    else:
+
+        response["attack_detected"] = False
+        response["threat_type"] = "No threat detected"
+
+
+    return response

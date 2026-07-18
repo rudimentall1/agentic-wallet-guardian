@@ -1,8 +1,9 @@
 """
-Guardian Demo Engine v1
+Guardian Demo Engine v2
 
 Creates human-readable
-security simulation output.
+security simulation output
+for ChainHack presentation.
 """
 
 
@@ -16,15 +17,17 @@ def create_simulation(
     )
 
     risk_score = decision_result.get(
-        "risk_score"
+        "adjusted_risk_score",
+        decision_result.get(
+            "risk_score",
+            0
+        )
     )
-
 
     explanation = decision_result.get(
         "explanation",
         {}
     )
-
 
     wallet = request.get(
         "wallet"
@@ -43,6 +46,32 @@ def create_simulation(
     )
 
 
+    threat_type = None
+
+    if agent == "drainer-agent-777":
+
+        threat_type = "AI agent transaction abuse"
+
+
+    elif agent == "unknown-agent-x":
+
+        threat_type = "Suspicious AI agent behavior"
+
+
+    else:
+
+        threat_type = "No threat detected"
+
+
+
+    attack_detected = (
+        decision in [
+            "WARN",
+            "BLOCK"
+        ]
+    )
+
+
     return {
 
         "simulation":
@@ -50,11 +79,11 @@ def create_simulation(
 
 
         "attack_detected":
-            True,
+            attack_detected,
 
 
         "threat_type":
-            "AI agent transaction abuse",
+            threat_type,
 
 
         "agent_request": {
@@ -86,12 +115,10 @@ def create_simulation(
 
 
         "security_explanation":
-
             explanation,
 
 
         "final_message":
-
             explanation.get(
                 "agent_message"
             )

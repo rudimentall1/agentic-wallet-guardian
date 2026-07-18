@@ -136,6 +136,14 @@ def evaluate_action(request):
     )
 
 
+    if agent_reputation:
+
+        if agent_reputation.get("risk_modifier", 0) > 0:
+
+            reasons.append(
+                "Agent reputation risk detected"
+            )
+
 
     #
     # Final Guardian Decision

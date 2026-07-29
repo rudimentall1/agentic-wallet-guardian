@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environment
+venv/
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+# Logs
+*.log
+
+# Web3 secrets
+*.key
+*.pem
+*.secret
+secrets/
+keys/
+wallets/
+
+# Server
+*.sqlite
+*.db
+
+# Environment backups
+.env.*
+backup_v21/
+data/guardian_memory.json
+app/demo_ui.py.before-live

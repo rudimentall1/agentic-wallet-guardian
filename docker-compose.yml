@@ -1,0 +1,8 @@
+services:
+  guardian:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - GUARDIAN_ENV=production
+    restart: unless-stopped

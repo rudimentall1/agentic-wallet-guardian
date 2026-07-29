@@ -1,0 +1,45 @@
+{
+  "name": "Agentic Wallet Guardian",
+  "type": "ASP",
+  "version": "3.0.0",
+  "description": "Decision infrastructure for autonomous AI agents: evaluates a proposed blockchain action intent and returns an explainable ALLOW/WARN/BLOCK decision before execution.",
+  "provider": {
+    "name": "Independent Web3 AI Service Provider"
+  },
+  "skills": [
+    {
+      "name": "action_intent_decision",
+      "endpoint": "/decision",
+      "method": "POST",
+      "description": "Evaluate a proposed agent action (swap, transfer, approve, contract_call, bridge) and return a risk-scored, explainable decision."
+    },
+    {
+      "name": "agent_history",
+      "endpoint": "/agents/{agent_id}/history",
+      "method": "GET",
+      "description": "Return the decision history and current reputation score for a given agent."
+    },
+    {
+      "name": "health_check",
+      "endpoint": "/health",
+      "method": "GET",
+      "description": "Check service availability."
+    },
+    {
+      "name": "capabilities",
+      "endpoint": "/capabilities",
+      "method": "GET",
+      "description": "Return supported chains, action types and pipeline stages."
+    }
+  ],
+  "protocols": [
+    "REST",
+    "MCP",
+    "x402"
+  ],
+  "category": [
+    "AI Agents",
+    "Web3 Security",
+    "Decision Infrastructure"
+  ]
+}

@@ -31,6 +31,8 @@ wallets/
 
 # Environment backups
 .env.*
-backup_v21/
-data/guardian_memory.json
-app/demo_ui.py.before-live
+!.env.example
+
+# Local data (self-hosted instance state)
+data/*.db
+data/*.db-*

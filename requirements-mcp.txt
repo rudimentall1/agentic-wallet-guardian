@@ -1,0 +1,14 @@
+# Install this in its OWN virtual environment, separate from requirements.txt.
+#
+# Why: the mcp package pulls in a starlette version that conflicts with the
+# fastapi version pinned in requirements.txt - installing both into one
+# environment breaks the FastAPI app at runtime (confirmed: FastAPI's
+# Router.__init__ receives an incompatible signature from the newer
+# starlette). mcp_server.py only imports from guardian.*, never api.*, so
+# it has no FastAPI dependency of its own as long as you keep the
+# environments separate.
+#
+#   python -m venv venv-mcp
+#   venv-mcp/bin/pip install -r requirements-mcp.txt
+#   venv-mcp/bin/python mcp_server.py
+mcp==2.0.0

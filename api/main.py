@@ -29,7 +29,7 @@ logger = logging.getLogger("guardian.api")
 
 app = FastAPI(
     title="Agentic Wallet Guardian",
-    version="3.0.0",
+    version="3.1.0",
     description=(
         "Decision infrastructure for autonomous AI agents acting on blockchain "
         "wallets. Agents submit an action intent and receive an explainable "
@@ -65,7 +65,7 @@ def health():
 @app.get("/capabilities", tags=["meta"])
 def capabilities():
     return {
-        "version": "3.0.0",
+        "version": "3.1.0",
         "supported_chains": sorted(SUPPORTED_CHAINS),
         "action_types": ["swap", "transfer", "approve", "contract_call", "bridge"],
         "decision_types": ["ALLOW", "WARN", "BLOCK"],

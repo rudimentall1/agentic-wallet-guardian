@@ -19,21 +19,32 @@ from __future__ import annotations
 
 from typing import List, Optional
 
+from guardian.config import GuardianConfig, get_config
 from guardian.core.context import EvaluationContext
 from guardian.core.intent import ActionIntent
 from guardian.core.models import Decision, DecisionType, PolicyViolation
 from guardian.decision.rules import evaluate_hard_rules
 from guardian.decision.scoring import RiskFusionEngine
-from guardian.intelligence.contract.analyzer import ContractAnalyzer
+from guardian.intelligence.contract.analyzer import ContractAnalyzer, build_contract_provider
 from guardian.intelligence.simulation.engine import SimulationEngine
+from guardian.intelligence.threat.blocklist import AddressList
 from guardian.intelligence.threat.intelligence import ThreatIntelligence
-from guardian.intelligence.token.analyzer import TokenAnalyzer
-from guardian.intelligence.wallet.analyzer import WalletAnalyzer
+from guardian.intelligence.token.analyzer import TokenAnalyzer, build_token_provider
+from guardian.intelligence.wallet.analyzer import WalletAnalyzer, build_wallet_provider
 from guardian.memory.history import DecisionHistory
+from guardian.memory.storage import InMemoryStorage, MemoryBackend
 from guardian.policy.engine import PolicyEngine
 from guardian.reasoning.confidence import compute_confidence
 from guardian.reasoning.explanation import build_explanation
 from guardian.reputation.agent import AgentReputation
+
+
+def build_storage_backend(config: GuardianConfig) -> MemoryBackend:
+    if config.storage_backend == "sqlite":
+        from guardian.memory.sqlite_storage import SQLiteStorage
+
+        return SQLiteStorage(config.sqlite_path)
+    return InMemoryStorage()
 
 # Thresholds for translating a fused risk score into a decision, once no
 # hard rule / BLOCK-severity policy violation has already forced BLOCK.
@@ -42,15 +53,28 @@ WARN_THRESHOLD = 40.0
 
 
 class DecisionEngine:
-    def __init__(self, policy_engine: Optional[PolicyEngine] = None, history: Optional[DecisionHistory] = None):
-        self.wallet_analyzer = WalletAnalyzer()
-        self.token_analyzer = TokenAnalyzer()
-        self.contract_analyzer = ContractAnalyzer()
+    def __init__(
+        self,
+        policy_engine: Optional[PolicyEngine] = None,
+        history: Optional[DecisionHistory] = None,
+        config: Optional[GuardianConfig] = None,
+        wallet_analyzer: Optional[WalletAnalyzer] = None,
+        token_analyzer: Optional[TokenAnalyzer] = None,
+        contract_analyzer: Optional[ContractAnalyzer] = None,
+    ):
+        config = config or get_config()
+        self.wallet_analyzer = wallet_analyzer or WalletAnalyzer(build_wallet_provider(config))
+        self.token_analyzer = token_analyzer or TokenAnalyzer(build_token_provider(config))
+        self.contract_analyzer = contract_analyzer or ContractAnalyzer(
+            build_contract_provider(config),
+            known_safe=AddressList(config.verified_contracts_path),
+            known_malicious=AddressList(config.malicious_contracts_path),
+        )
         self.simulation_engine = SimulationEngine()
-        self.threat_intel = ThreatIntelligence()
+        self.threat_intel = ThreatIntelligence(AddressList(config.sanctioned_addresses_path))
         self.risk_fusion = RiskFusionEngine()
         self.policy_engine = policy_engine or PolicyEngine()
-        self.history = history or DecisionHistory()
+        self.history = history or DecisionHistory(build_storage_backend(config))
         self.reputation = AgentReputation(self.history)
 
     def evaluate(self, intent: ActionIntent) -> Decision:

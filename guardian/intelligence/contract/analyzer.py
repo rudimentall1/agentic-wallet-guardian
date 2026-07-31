@@ -1,25 +1,45 @@
 """Contract intelligence analyzer.
 
-Ships with a small in-memory allow/deny list as a real (if minimal)
-starting point, plus a deterministic mock fallback for anything unlisted.
-Replace the fallback with a real registry (verified-contract database,
-bytecode/upgrade-pattern analysis, GoPlus/Chainalysis contract-security
-API, or your own audit database) before production use.
+Checks the target contract against local allow/deny lists first (see
+``guardian/intelligence/threat/blocklist.py``), then falls back to a
+``ContractDataProvider`` for anything unlisted - the mock heuristic by
+default, or ``BlockscoutContractDataProvider`` for a real verification
+check. Select via ``GUARDIAN_CONTRACT_PROVIDER`` (``mock`` |
+``blockscout``) - see ``guardian/config.py``.
 """
 from __future__ import annotations
 
-import hashlib
 from typing import List, Optional
 
 from guardian.core.models import Signal
+from guardian.intelligence.contract.providers import (
+    BlockscoutContractDataProvider,
+    ContractDataProvider,
+    MockContractDataProvider,
+)
+from guardian.intelligence.threat.blocklist import AddressList
 
-# Populate these from a real registry / your own audit findings.
-KNOWN_SAFE_CONTRACTS: dict = {}
-KNOWN_MALICIOUS_CONTRACTS: dict = {}
+
+def build_contract_provider(config) -> ContractDataProvider:
+    if config.contract_provider == "blockscout":
+        return BlockscoutContractDataProvider(
+            base_url=config.blockscout_base_url, timeout=config.provider_timeout_seconds,
+        )
+    return MockContractDataProvider()
 
 
 class ContractAnalyzer:
     source = "contract"
+
+    def __init__(
+        self,
+        provider: Optional[ContractDataProvider] = None,
+        known_safe: Optional[AddressList] = None,
+        known_malicious: Optional[AddressList] = None,
+    ):
+        self.provider = provider or MockContractDataProvider()
+        self.known_safe = known_safe or AddressList("data/threat_lists/verified_contracts.json")
+        self.known_malicious = known_malicious or AddressList("data/threat_lists/malicious_contracts.json")
 
     def analyze(self, contract_address: Optional[str], chain: str) -> List[Signal]:
         if not contract_address:
@@ -27,44 +47,46 @@ class ContractAnalyzer:
 
         addr = contract_address.lower()
 
-        if addr in KNOWN_MALICIOUS_CONTRACTS:
+        if addr in self.known_malicious:
             return [Signal(
                 source=self.source, name="known_malicious_contract", score=100, weight=5.0,
                 confidence=0.95,
-                reason=f"Target contract is on the deny-list ({KNOWN_MALICIOUS_CONTRACTS[addr]})",
+                reason=f"Target contract is on the local deny-list ({self.known_malicious.label_for(addr)})",
             )]
 
-        if addr in KNOWN_SAFE_CONTRACTS:
+        if addr in self.known_safe:
             return [Signal(
                 source=self.source, name="known_safe_contract", score=2, weight=1.0,
                 confidence=0.9,
-                reason=f"Target contract is a known verified contract ({KNOWN_SAFE_CONTRACTS[addr]})",
+                reason=f"Target contract is on the local allow-list ({self.known_safe.label_for(addr)})",
             )]
 
-        # Unknown contract: deterministic mock heuristics stand in for real
-        # bytecode / verification / upgrade-pattern analysis.
-        # TODO(production): replace with a real contract-security lookup.
-        h = int(hashlib.sha256(f"{chain}:{addr}".encode()).hexdigest(), 16)
-        is_verified = (h % 3) != 0  # ~66% "verified" in mock data
-        is_upgradeable = (h % 5) == 0  # ~20% "upgradeable" in mock data
-
+        profile = self.provider.get_profile(contract_address, chain)
+        mock_note = " (mock data source)" if profile.data_source == "mock" else ""
         signals: List[Signal] = []
-        if is_verified:
+
+        if profile.is_verified is None:
+            signals.append(Signal(
+                source=self.source, name="verification_status_unknown", score=30, weight=0.6,
+                confidence=0.4,
+                reason="Contract verification status could not be determined from the configured data source",
+            ))
+        elif profile.is_verified:
             signals.append(Signal(
                 source=self.source, name="verified_contract", score=10, weight=0.8,
-                confidence=0.6, reason="Target contract source is verified (mock data source)",
+                confidence=0.6, reason=f"Target contract source is verified{mock_note}",
             ))
         else:
             signals.append(Signal(
                 source=self.source, name="unverified_contract", score=55, weight=1.5,
-                confidence=0.6, reason="Target contract source is not verified (mock data source)",
+                confidence=0.6, reason=f"Target contract source is not verified{mock_note}",
             ))
 
-        if is_upgradeable:
+        if profile.is_upgradeable:
             signals.append(Signal(
                 source=self.source, name="upgradeable_contract", score=40, weight=1.2,
                 confidence=0.5,
-                reason="Contract uses an upgradeable proxy pattern — logic can change after approval",
+                reason="Contract uses an upgradeable proxy pattern - logic can change after approval",
             ))
 
         return signals

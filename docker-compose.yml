@@ -3,6 +3,14 @@ services:
     build: .
     ports:
       - "8000:8000"
+    env_file:
+      - path: .env
+        required: false
     environment:
       - GUARDIAN_ENV=production
+    volumes:
+      - guardian-data:/app/data
     restart: unless-stopped
+
+volumes:
+  guardian-data:

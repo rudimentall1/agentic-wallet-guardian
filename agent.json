@@ -1,7 +1,7 @@
 {
   "name": "Agentic Wallet Guardian",
   "type": "ASP",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "Decision infrastructure for autonomous AI agents: evaluates a proposed blockchain action intent and returns an explainable ALLOW/WARN/BLOCK decision before execution.",
   "provider": {
     "name": "Independent Web3 AI Service Provider"
@@ -34,8 +34,7 @@
   ],
   "protocols": [
     "REST",
-    "MCP",
-    "x402"
+    "MCP"
   ],
   "category": [
     "AI Agents",

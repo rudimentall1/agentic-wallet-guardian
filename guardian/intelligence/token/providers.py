@@ -40,8 +40,10 @@ class MockTokenDataProvider:
 
     def get_liquidity_profile(self, symbol: str, chain: str) -> TokenLiquidityProfile:
         h = int(hashlib.sha256(f"{chain}:{symbol.lower()}".encode()).hexdigest(), 16)
+        is_concentrated = (h % 4) == 0  # ~25% mock rate, matches the original v3 heuristic
+        liquidity_usd = float(h % 200_000) if not is_concentrated else float(h % 5_000)
         return TokenLiquidityProfile(
-            symbol=symbol, liquidity_usd=None, is_concentrated=(h % 4) == 0, data_source="mock",
+            symbol=symbol, liquidity_usd=liquidity_usd, is_concentrated=is_concentrated, data_source="mock",
         )
 
 

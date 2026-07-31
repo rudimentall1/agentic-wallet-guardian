@@ -14,12 +14,18 @@ Endpoints:
 """
 from __future__ import annotations
 
-from fastapi import FastAPI, HTTPException
+import logging
+
+from fastapi import Depends, FastAPI, HTTPException
 
 from api.schemas import DecisionRequest, DecisionResponse
+from api.security import RateLimitMiddleware, make_api_key_dependency
+from guardian.config import get_config
 from guardian.core.intent import ActionIntent
 from guardian.decision.engine import DecisionEngine
 from guardian.decision.rules import SUPPORTED_CHAINS
+
+logger = logging.getLogger("guardian.api")
 
 app = FastAPI(
     title="Agentic Wallet Guardian",
@@ -31,11 +37,24 @@ app = FastAPI(
     ),
 )
 
+config = get_config()
+
 # A single shared engine instance keeps reputation/history in-process across
 # requests for the lifetime of this process. Before running more than one
 # instance behind a load balancer, swap DecisionHistory's backend for a
-# shared store (Redis/Postgres) — see guardian/memory/storage.py.
-engine = DecisionEngine()
+# shared store (Redis/Postgres) — see guardian/memory/storage.py, or set
+# GUARDIAN_STORAGE_BACKEND=sqlite for a single-instance persistent default.
+engine = DecisionEngine(config=config)
+
+require_api_key = make_api_key_dependency(config)
+app.add_middleware(RateLimitMiddleware, limit_per_minute=config.rate_limit_per_minute)
+
+if not config.auth_enabled:
+    logger.warning(
+        "GUARDIAN_API_KEY is not set - /decision and /agents/*/history are running "
+        "WITHOUT authentication. Fine for local dev; set GUARDIAN_API_KEY before "
+        "exposing this instance beyond localhost."
+    )
 
 
 @app.get("/health", tags=["meta"])
@@ -65,7 +84,7 @@ def capabilities():
     }
 
 
-@app.post("/decision", response_model=DecisionResponse, tags=["core"])
+@app.post("/decision", response_model=DecisionResponse, tags=["core"], dependencies=[Depends(require_api_key)])
 def decide(payload: DecisionRequest):
     intent = ActionIntent(
         agent_id=payload.agent_id,
@@ -82,7 +101,7 @@ def decide(payload: DecisionRequest):
     return decision.to_dict()
 
 
-@app.get("/agents/{agent_id}/history", tags=["core"])
+@app.get("/agents/{agent_id}/history", tags=["core"], dependencies=[Depends(require_api_key)])
 def agent_history(agent_id: str):
     records = engine.history.get(agent_id)
     return {

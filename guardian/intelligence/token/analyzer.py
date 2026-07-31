@@ -15,6 +15,11 @@ from guardian.intelligence.token.providers import (
     TokenDataProvider,
 )
 
+# Real, not mock: widely-held major assets don't need a liquidity lookup at
+# all - skipping the provider call here also means one fewer external
+# request on the most common path (agents swapping into/out of stables).
+MAJOR_TOKENS = {"ETH", "WETH", "USDC", "USDT", "DAI", "WBTC", "SOL", "USDS"}
+
 
 def build_token_provider(config) -> TokenDataProvider:
     if config.token_provider == "dexscreener":
@@ -33,6 +38,12 @@ class TokenAnalyzer:
     def analyze(self, symbol: Optional[str], chain: str) -> List[Signal]:
         if not symbol:
             return []
+
+        if symbol.upper() in MAJOR_TOKENS:
+            return [Signal(
+                source=self.source, name="major_token", score=2, weight=1.0,
+                confidence=0.95, reason=f"{symbol.upper()} is a widely-held, liquid asset",
+            )]
 
         profile = self.provider.get_liquidity_profile(symbol, chain)
         signals: List[Signal] = []

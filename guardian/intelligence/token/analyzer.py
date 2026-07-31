@@ -1,50 +1,69 @@
 """Token intelligence analyzer.
 
-NOTE ON DATA SOURCES: major assets are hard-coded (this part is real and
-safe to ship as-is). Everything else falls back to a deterministic mock
-heuristic for liquidity concentration — replace ``_liquidity_profile`` with
-a real DEX-liquidity / holder-distribution source (DEX Screener, GoPlus
-token security API, direct on-chain LP queries) before production use.
+Delegates liquidity data to a ``TokenDataProvider`` - the mock generator
+by default, or ``DexScreenerTokenDataProvider`` for real liquidity data.
+Select via ``GUARDIAN_TOKEN_PROVIDER`` (``mock`` | ``dexscreener``).
 """
 from __future__ import annotations
 
-import hashlib
 from typing import List, Optional
 
 from guardian.core.models import Signal
+from guardian.intelligence.token.providers import (
+    DexScreenerTokenDataProvider,
+    MockTokenDataProvider,
+    TokenDataProvider,
+)
 
-MAJOR_TOKENS = {"ETH", "WETH", "USDC", "USDT", "DAI", "WBTC", "SOL", "USDS"}
 
-
-def _liquidity_profile(token_symbol: str, chain: str) -> bool:
-    """Returns True if (mock) liquidity looks concentrated. TODO(production): replace."""
-    h = int(hashlib.sha256(f"{chain}:{token_symbol.lower()}".encode()).hexdigest(), 16)
-    return (h % 4) == 0  # ~25% mock rate
+def build_token_provider(config) -> TokenDataProvider:
+    if config.token_provider == "dexscreener":
+        return DexScreenerTokenDataProvider(
+            base_url=config.dexscreener_base_url, timeout=config.provider_timeout_seconds,
+        )
+    return MockTokenDataProvider()
 
 
 class TokenAnalyzer:
     source = "token"
 
-    def analyze(self, token_symbol: Optional[str], chain: str) -> List[Signal]:
-        if not token_symbol:
+    def __init__(self, provider: Optional[TokenDataProvider] = None):
+        self.provider = provider or MockTokenDataProvider()
+
+    def analyze(self, symbol: Optional[str], chain: str) -> List[Signal]:
+        if not symbol:
             return []
 
-        if token_symbol.upper() in MAJOR_TOKENS:
-            return [Signal(
-                source=self.source, name="major_token", score=2, weight=1.0,
-                confidence=0.95, reason=f"{token_symbol.upper()} is a widely-held, liquid asset",
-            )]
+        profile = self.provider.get_liquidity_profile(symbol, chain)
+        signals: List[Signal] = []
+        mock_note = " (mock data source)" if profile.data_source == "mock" else ""
 
-        signals = [Signal(
-            source=self.source, name="unrecognized_token", score=30, weight=1.0,
-            confidence=0.5, reason=f"{token_symbol} is not in the major-asset list (mock data source)",
-        )]
-
-        if _liquidity_profile(token_symbol, chain):
+        if profile.match_confidence < 0.5:
             signals.append(Signal(
-                source=self.source, name="liquidity_concentration", score=50, weight=1.3,
-                confidence=0.5,
-                reason="Liquidity for this token appears concentrated in a small number of holders",
+                source=self.source, name="token_match_uncertain", score=20, weight=0.4,
+                confidence=0.3,
+                reason=f"Could not confidently match ticker '{symbol}' to a specific on-chain pair "
+                       f"- ticker symbols are not unique and are often impersonated",
+            ))
+            return signals
+
+        if profile.liquidity_usd is None:
+            signals.append(Signal(
+                source=self.source, name="liquidity_unknown", score=15, weight=0.4,
+                confidence=0.4,
+                reason="Token liquidity could not be determined from the configured data source",
+            ))
+        elif profile.is_concentrated:
+            signals.append(Signal(
+                source=self.source, name="thin_liquidity", score=60, weight=1.3,
+                confidence=0.7,
+                reason=f"Token liquidity is thin (${profile.liquidity_usd:,.0f}){mock_note} "
+                       f"- price impact and rug risk are both higher",
+            ))
+        else:
+            signals.append(Signal(
+                source=self.source, name="adequate_liquidity", score=5, weight=0.6,
+                confidence=0.7, reason=f"Token liquidity looks adequate (${profile.liquidity_usd:,.0f}){mock_note}",
             ))
 
         return signals

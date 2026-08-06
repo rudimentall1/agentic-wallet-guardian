@@ -1,289 +1,85 @@
 # Agentic Wallet Guardian
 
-**A self-hosted decision engine that sits between an AI agent and blockchain
-execution.** Agents submit a proposed action, Guardian returns an
-explainable ALLOW / WARN / BLOCK before anything gets signed or broadcast.
+Self-hosted decision engine for evaluating blockchain actions before an AI agent signs or broadcasts them.
 
-```
-POST /decision   ->   ALLOW / WARN / BLOCK  (with a reasoned explanation)
-```
+## Problem
 
-It runs on your own infrastructure, using your own policy rules and your
-own reputation data - see [Why self-hosted](#why-self-hosted) for why that
-matters and how this differs from calling a hosted security API directly.
+Autonomous agents can interact with wallets, tokens, and contracts at machine speed. A useful security layer needs to evaluate the intended action, apply policy, combine intelligence signals, and return an explainable decision before execution.
 
----
+## Solution
 
-## Why self-hosted
+Guardian exposes a decision pipeline that returns:
 
-There are good hosted alternatives for agent-transaction security (GoPlus's
-AgentGuard, Blockaid, Chainalysis/TRM for compliance). If you just want a
-risk score and don't care who sees the query, calling one of those directly
-is less work than running this. Guardian exists for the cases where that
-tradeoff doesn't work for you:
+`ALLOW / WARN / BLOCK`
 
-- **Nothing about which wallets, contracts, or amounts your agents touch
-  leaves your infrastructure.** Threat-intel and contract allow/deny checks
-  are local JSON files you populate yourself (see
-  `data/threat_lists/README.md`), not a lookup call to a third party. A
-  hosted API inherently sees every address and amount you ask it about.
-- **Your policy rules live in your code, not a vendor's dashboard.**
-  Spending caps, reputation gates, and which action types require
-  confirmation are plain Python in `guardian/policy/`, reviewable and
-  changeable without waiting on anyone else's product roadmap.
-- **No per-call fees or rate limits imposed by someone else** - only the
-  ones you configure for your own users (`GUARDIAN_RATE_LIMIT_PER_MINUTE`).
-- **No vendor lock-in.** Every external data source (RPC endpoint,
-  Blockscout instance, DexScreener) is swappable behind a small provider
-  interface - see [Architecture](#architecture).
-
-The honest tradeoff going the other way: you also take on running it,
-keeping your local threat lists current, and you don't get a hosted
-vendor's chain coverage or dedicated threat-research team for free. This is
-the right choice for teams that specifically need data sovereignty or deep
-policy customization - not a strict upgrade over every hosted option.
-
----
+with evidence and human-readable reasoning.
 
 ## Architecture
 
-```
-                AI Agent
-                    |
-                    v
-             Action Intent
-   { agent_id, wallet, chain, action_type,
-     target, amount, metadata }
-                    |
-                    v
-        ┌─────────────────────────┐
-        │   Guardian Decision      │
-        │        Engine             │
-        ├───────────────────────────┤
-        │  1. Hard Rules             │  <- chain support, sanity checks
-        │  2. Wallet Intelligence     │  <- mock | real RPC (web3.py)
-        │  3. Token Intelligence       │  <- mock | real DexScreener
-        │  4. Contract Intelligence     │  <- local lists, then mock | real Blockscout
-        │  5. Simulation                 │  <- pre-execution dry-run (still a stub - see below)
-        │  6. Threat Intelligence          │  <- local JSON allow/deny lists
-        │  7. Policy Engine                 │  <- spending caps, reputation gates
-        │  8. Risk Fusion                    │  <- signals -> single 0-100 score
-        │  9. Reputation Adjustment            │
-        │ 10. Explanation                       │  <- evidence -> human-readable reasons
-        └───────────────────────────────────────┘
-                    |
-                    v
-          ALLOW / WARN / BLOCK
-                    |
-                    v
-          Blockchain Execution
+```text
+AI Agent
+   |
+   v
+Action Intent
+   |
+   +--> Hard Rules
+   +--> Wallet Intelligence
+   +--> Token Intelligence
+   +--> Contract Intelligence
+   +--> Simulation
+   +--> Threat Intelligence
+   +--> Policy Engine
+   +--> Risk Fusion
+   +--> Agent Reputation
+   |
+   v
+Explainable Decision
+   |
+   v
+ALLOW / WARN / BLOCK
 ```
 
-Every data source in steps 2-4 is a small provider interface with a mock
-implementation (zero config, zero network calls) and a real one, selected
-per-source by environment variable - see `.env.example`. Switching from
-demo mode to a real deployment is a config change, not a code change.
+## Design
 
-### Repository layout
+The decision core is separated from the HTTP API. Intelligence providers expose replaceable interfaces so mock data can be used for development while real RPC, token, contract, and threat-intelligence sources can be introduced independently.
 
-```
-guardian/
-    config.py          GuardianConfig - the one place that reads os.environ
-    core/               ActionIntent, Signal, Decision, EvaluationContext
-                            (zero external dependencies - no pydantic/FastAPI)
-    decision/           DecisionEngine (orchestrator), RiskFusionEngine, hard rules
-    reasoning/          explanation + confidence builders
-    intelligence/
-        wallet/           analyzer.py + providers.py (mock | RpcWalletDataProvider)
-        token/            analyzer.py + providers.py (mock | DexScreenerTokenDataProvider)
-        contract/         analyzer.py + providers.py (mock | BlockscoutContractDataProvider)
-        simulation/       pre-execution dry-run (pluggable, stubbed by default)
-        threat/           blocklist.py (local AddressList) + intelligence.py
-    policy/             PolicyEngine + policy templates (spending caps, reputation gates)
-    reputation/         AgentReputation (score derived from decision history)
-    memory/             storage.py (protocol) + InMemoryStorage + sqlite_storage.py
-api/
-    main.py             FastAPI app: /decision, /health, /capabilities, /agents/{id}/history, /demo/{scenario}
-    security.py         API-key auth dependency + rate-limit middleware
-    schemas.py          pydantic request/response models (API boundary only)
-mcp_server.py           MCP stdio server - same DecisionEngine, no HTTP required
-data/threat_lists/      local, operator-maintained allow/deny lists (empty by default - see its README)
-scripts/
-    refresh_ofac_list.py   fetch OFAC's public SDN list into the local threat list
-tests/                  53 tests covering the engine, policy, reputation, and every provider
-```
+The repository also includes an MCP interface for agent frameworks that support MCP.
 
-`guardian/*` is intentionally dependency-free (standard library only,
-except where a real provider needs `httpx` or `web3`), so the decision
-core can be unit-tested, embedded in another service, or ported to a
-different web framework without dragging FastAPI along. Only `api/`
-touches pydantic/FastAPI.
+## Stack
 
----
-
-## Honesty about the current state
-
-This is real, runnable, tested decision infrastructure with real (not
-mock) data sources available for every signal source - but "available"
-isn't the same as "flip a switch and trust it blindly." Specifics:
-
-- **Wallet (RPC provider):** `is_contract` and `tx_count` (nonce-based) are
-  reliable with any JSON-RPC endpoint. Wallet *age* requires an
-  archive-capable node and is off by default
-  (`GUARDIAN_RPC_ESTIMATE_AGE=false`) - most free public RPC endpoints
-  don't serve historical state, so this fails closed to "unknown" rather
-  than guessing.
-- **Contract (Blockscout provider):** real verification-status lookups
-  against a public Blockscout instance. Their exact response schema and
-  rate limits can change - this is written to degrade to "unknown" on any
-  unexpected response, never to fabricate an answer, but hasn't been load-
-  tested against production traffic.
-- **Token (DexScreener provider):** real liquidity data, but matching a
-  bare ticker symbol to an on-chain pair is inherently ambiguous (many
-  unrelated tokens share a symbol, and scammers deliberately mint
-  look-alikes). The provider picks the highest-liquidity pair on the
-  requested chain and reports its own match confidence rather than
-  presenting a guess as certain - for anything where that ambiguity
-  matters, match by contract address instead of symbol.
-- **Threat intelligence / contract allow-deny lists:** local JSON files,
-  shipped **empty** on purpose (see `data/threat_lists/README.md` for why
-  and how to populate them). A `refresh_ofac_list.py` script is provided
-  for the sanctions list specifically - written and reviewed, but not run
-  end-to-end against the live OFAC endpoint from this codebase's own build
-  environment (no network path to treasury.gov there). Run and check it
-  yourself before relying on it.
-- **Simulation is still a stub.** This remains the single highest-value
-  next step: a real pre-execution dry-run (a forked-node `eth_call`,
-  Tenderly, or similar) tells you what a transaction *actually does*,
-  which no amount of statistical risk-scoring can substitute for.
-- **Storage:** `InMemoryStorage` (default, zero setup) or `SQLiteStorage`
-  (`GUARDIAN_STORAGE_BACKEND=sqlite` - persists across restarts, no
-  external infra). Neither is a fit for many replicas writing
-  concurrently at high volume; implement `MemoryBackend` against
-  Postgres/Redis for that.
-- **API auth/rate-limiting** are intentionally minimal - built for one
-  self-hosted instance behind your own network boundary, not a
-  multi-tenant gateway. Put a real API gateway in front if you need that.
-- **Not security-audited.** The policy engine and risk fusion logic have
-  not been reviewed by anyone outside this repo. Treat `BLOCK` as a strong
-  signal, not a guarantee, until that's happened.
-
-Everything downstream of a `Signal` - fusion, policy, reputation,
-explanation, the API - does **not** need to change as any of the above
-gets hardened further. That boundary is the actual design contract here.
-
----
+- Python
+- FastAPI
+- Pydantic
+- Web3.py
+- Docker
+- MCP
+- SQLite / in-memory storage
 
 ## Quickstart
-
-Zero-config demo mode (mock providers, in-memory storage, no auth):
 
 ```bash
 pip install -r requirements.txt
 uvicorn api.main:app --reload
 ```
 
-Or with Docker:
+Or:
 
 ```bash
 docker compose up --build
 ```
 
-Try the canned scenarios:
+## Tests
 
 ```bash
-curl http://localhost:8000/demo/safe
-curl http://localhost:8000/demo/unknown
-curl http://localhost:8000/demo/malicious
-```
-
-Or submit your own intent:
-
-```bash
-curl -X POST http://localhost:8000/decision \
-  -H "Content-Type: application/json" \
-  -d '{
-        "agent_id": "trading-agent-001",
-        "wallet": "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
-        "chain": "ethereum",
-        "action_type": "swap",
-        "from_token": "ETH",
-        "to_token": "USDC",
-        "amount": 5
-      }'
-```
-
-### Going from demo to a real self-hosted deployment
-
-Copy `.env.example` to `.env` and adjust:
-
-```bash
-cp .env.example .env
-```
-
-At minimum for a real deployment: set `GUARDIAN_API_KEY` (auth is off by
-default), `GUARDIAN_STORAGE_BACKEND=sqlite` (persistence), and whichever
-`GUARDIAN_*_PROVIDER` variables you want pointed at real data instead of
-mock - see the comments in `.env.example` for every option, and
-`RpcWalletDataProvider`/`BlockscoutContractDataProvider`/
-`DexScreenerTokenDataProvider`'s docstrings for what each one actually
-gives you.
-
-### MCP (no HTTP required)
-
-For agent frameworks that speak MCP (LangChain, CrewAI, Claude Desktop,
-etc.), `mcp_server.py` exposes the same decision engine as two tools
-(`evaluate_action`, `get_agent_history`) over stdio - install
-`requirements-mcp.txt` **in its own virtual environment** (see the comment
-at the top of that file for why it can't share an environment with
-`requirements.txt`) and point your MCP client at
-`python mcp_server.py`.
-
----
-
-## Running the tests
-
-```bash
-pip install -r requirements.txt -r requirements-chain.txt
 pytest -q
 ```
 
-`requirements-chain.txt` (`web3`) is only needed for the RPC-provider
-tests; the rest of the suite runs with just `requirements.txt`. The
-`guardian/*` core has no external dependencies beyond that, so it's also
-runnable with:
+The repository contains tests for the decision engine, policy, reputation, and provider layers.
 
-```bash
-PYTHONPATH=. python3 -m unittest discover -s tests -v
-```
+## Current State
 
-CI (`.github/workflows/ci.yml`) runs the full suite on every push/PR
-against Python 3.11 and 3.12.
+Runnable security decision infrastructure with real provider integrations available for wallet, token, and contract intelligence. Pre-execution simulation remains an important area for further hardening, and the project has not been independently security-audited.
 
----
+## Status
 
-## Roadmap
-
-1. ~~Replace the mock wallet/token/contract analyzers with real data
-   sources.~~ Done - see [Honesty about the current state](#honesty-about-the-current-state)
-   for what "real" does and doesn't cover yet per source.
-2. Wire up real pre-execution simulation - still the biggest open gap.
-3. ~~Populate threat-intel / sanctions feeds; stop shipping empty
-   sets.~~ Infrastructure is in place (`data/threat_lists/`,
-   `scripts/refresh_ofac_list.py`); the lists themselves still ship empty
-   and need an operator to populate and maintain them.
-4. ~~Swap `InMemoryStorage` for a persistent backend.~~ `SQLiteStorage` is
-   available; a Postgres/Redis backend is still open for multi-replica
-   deployments.
-5. ~~Add an MCP server wrapper.~~ Done (`mcp_server.py`). A packaged
-   Python/TypeScript SDK on top of the REST API is still open.
-6. Publish an OpenAPI spec and a hosted demo endpoint.
-7. Get the policy engine and risk fusion reviewed/audited before anyone
-   relies on a `BLOCK` from this service in production - it's a security
-   tool, so it needs the same scrutiny it applies to others.
-
----
-
-## License
-
-MIT - see `LICENSE`.
+Active engineering project / security infrastructure prototype.
